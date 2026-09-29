@@ -100,7 +100,6 @@ def detect_pose_activity(keypoints):
 
             return "bending"
 
-
         # ========================================
         # STANDING
         # ========================================
@@ -109,7 +108,6 @@ def detect_pose_activity(keypoints):
 
             return "standing"
 
-
         # ========================================
         # SITTING
         # ========================================
@@ -117,7 +115,6 @@ def detect_pose_activity(keypoints):
         if leg_ratio < 1.2:
 
             return "sitting"
-
 
         return "unknown"
 
@@ -260,7 +257,6 @@ def detect_video(video_path):
 
         return []
 
-
     # ========================================
     # VIDEO FPS
     # ========================================
@@ -273,11 +269,9 @@ def detect_video(video_path):
 
         fps = 30
 
-
     detections = []
 
     frame_number = 0
-
 
     # ========================================
     # UNIQUE OBJECTS
@@ -285,20 +279,17 @@ def detect_video(video_path):
 
     unique_objects = {}
 
-
     # ========================================
     # ACTIVITY STATES
     # ========================================
 
     activity_states = {}
 
-
     # ========================================
     # VIDEO START TIME
     # ========================================
 
     video_start_time = datetime.now()
-
 
     # ========================================
     # DISPLAY WINDOW
@@ -315,7 +306,6 @@ def detect_video(video_path):
         600
     )
 
-
     # ========================================
     # PROCESS VIDEO
     # ========================================
@@ -325,12 +315,9 @@ def detect_video(video_path):
         ret, frame = cap.read()
 
         if not ret:
-
             break
 
-
         frame_number += 1
-
 
         # ====================================
         # VIDEO TIME
@@ -348,17 +335,16 @@ def detect_video(video_path):
             )
         )
 
-
         # ====================================
-        # YOLO TRACKING
+        # YOLO + BYTETRACK TRACKING
         # ====================================
 
         results = model.track(
             frame,
             conf=0.5,
-            persist=True
+            persist=True,
+            tracker="bytetrack.yaml"
         )
-
 
         # ====================================
         # YOLO POSE
@@ -372,13 +358,11 @@ def detect_video(video_path):
 
         pose_result = pose_results[0]
 
-
         # ====================================
         # POSE PERSONS
         # ====================================
 
         pose_people = []
-
 
         if (
             pose_result.boxes is not None
@@ -413,7 +397,6 @@ def detect_video(video_path):
 
                 })
 
-
         # ====================================
         # TRACKED OBJECTS
         # ====================================
@@ -421,7 +404,6 @@ def detect_video(video_path):
         for result in results:
 
             for box in result.boxes:
-
 
                 # ==============================
                 # CLASS
@@ -441,7 +423,6 @@ def detect_video(video_path):
                     ]
                 )
 
-
                 # ==============================
                 # OBJECT ID
                 # ==============================
@@ -453,7 +434,6 @@ def detect_video(video_path):
                 object_id = int(
                     box.id[0]
                 )
-
 
                 # ==============================
                 # BOUNDING BOX
@@ -471,7 +451,6 @@ def detect_video(video_path):
                     y2
                 ]
 
-
                 # ==============================
                 # UNIQUE OBJECT
                 # ==============================
@@ -483,16 +462,13 @@ def detect_video(video_path):
                     )
                 ] = True
 
-
                 # ==============================
                 # ACTIVITY
                 # ==============================
 
                 activity = "unknown"
 
-
                 if object_class == "person":
-
 
                     # ==========================
                     # FIND POSE
@@ -501,7 +477,6 @@ def detect_video(video_path):
                     best_pose = None
 
                     best_iou = 0
-
 
                     for pose_person in pose_people:
 
@@ -520,13 +495,11 @@ def detect_video(video_path):
                                 pose_person
                             )
 
-
                     # ==========================
                     # POSE ACTIVITY
                     # ==========================
 
                     pose_activity = "unknown"
-
 
                     if (
                         best_pose is not None
@@ -542,7 +515,6 @@ def detect_video(video_path):
                             )
                         )
 
-
                     # ==========================
                     # PERSON CENTER
                     # ==========================
@@ -552,7 +524,6 @@ def detect_video(video_path):
                             object_bbox
                         )
                     )
-
 
                     # ==========================
                     # PREVIOUS STATE
@@ -564,9 +535,7 @@ def detect_video(video_path):
                         )
                     )
 
-
                     previous_center = None
-
 
                     if previous_state:
 
@@ -575,7 +544,6 @@ def detect_video(video_path):
                                 "center"
                             )
                         )
-
 
                     # ==========================
                     # MOVEMENT
@@ -587,7 +555,6 @@ def detect_video(video_path):
                             current_center
                         )
                     )
-
 
                     # ==========================
                     # ACTIVITY DECISION
@@ -611,7 +578,6 @@ def detect_video(video_path):
 
                         activity = "unknown"
 
-
                     # ==========================
                     # FIRST ACTIVITY
                     # ==========================
@@ -633,7 +599,6 @@ def detect_video(video_path):
 
                         }
 
-
                     else:
 
                         previous_activity = (
@@ -641,7 +606,6 @@ def detect_video(video_path):
                                 object_id
                             ]["activity"]
                         )
-
 
                         # ======================
                         # ACTIVITY CHANGED
@@ -653,24 +617,20 @@ def detect_video(video_path):
                             previous_activity != activity
                         ):
 
-
                             start_time = (
                                 activity_states[
                                     object_id
                                 ]["start_time"]
                             )
 
-
                             end_time = (
                                 current_time
                             )
-
 
                             duration = (
                                 end_time -
                                 start_time
                             ).total_seconds()
-
 
                             # ==================
                             # SAVE ACTIVITY
@@ -710,7 +670,6 @@ def detect_video(video_path):
 
                             })
 
-
                             # ==================
                             # START NEW ACTIVITY
                             # ==================
@@ -730,7 +689,6 @@ def detect_video(video_path):
 
                             }
 
-
                         else:
 
                             activity_states[
@@ -738,7 +696,6 @@ def detect_video(video_path):
                             ]["center"] = (
                                 current_center
                             )
-
 
                 # =================================
                 # CURRENT DETECTION
@@ -750,9 +707,7 @@ def detect_video(video_path):
                     )
                 )
 
-
                 activity_start_time = None
-
 
                 if (
                     object_class == "person"
@@ -765,7 +720,6 @@ def detect_video(video_path):
                             "start_time"
                         ].isoformat()
                     )
-
 
                 detections.append({
 
@@ -801,7 +755,6 @@ def detect_video(video_path):
 
                 })
 
-
         # ====================================
         # DISPLAY
         # ====================================
@@ -810,12 +763,10 @@ def detect_video(video_path):
             results[0].plot()
         )
 
-
         cv2.imshow(
             "YOLO Video Detection",
             annotated_frame
         )
-
 
         # ====================================
         # STOP WITH Q
@@ -827,7 +778,6 @@ def detect_video(video_path):
         ):
 
             break
-
 
     # ========================================
     # FINISH LAST ACTIVITIES
@@ -841,7 +791,6 @@ def detect_video(video_path):
         )
     )
 
-
     for object_id, state in (
         activity_states.items()
     ):
@@ -850,22 +799,18 @@ def detect_video(video_path):
             state["activity"]
         )
 
-
         if activity == "unknown":
 
             continue
-
 
         start_time = (
             state["start_time"]
         )
 
-
         duration = (
             final_time -
             start_time
         ).total_seconds()
-
 
         detections.append({
 
@@ -901,7 +846,6 @@ def detect_video(video_path):
 
         })
 
-
     # ========================================
     # RELEASE
     # ========================================
@@ -910,13 +854,11 @@ def detect_video(video_path):
 
     cv2.destroyAllWindows()
 
-
     # ========================================
     # UNIQUE OBJECT COUNTS
     # ========================================
 
     object_counts = {}
-
 
     for object_class, object_id in (
         unique_objects.keys()
@@ -928,11 +870,9 @@ def detect_video(video_path):
                 object_class
             ] = 0
 
-
         object_counts[
             object_class
         ] += 1
-
 
     # ========================================
     # PRINT OBJECT COUNTS
@@ -952,7 +892,6 @@ def detect_video(video_path):
         "==================================="
     )
 
-
     for object_class, count in (
         object_counts.items()
     ):
@@ -961,11 +900,9 @@ def detect_video(video_path):
             f"{object_class}: {count}"
         )
 
-
     print(
         "==================================="
     )
-
 
     # ========================================
     # ACTIVITY COUNTS
@@ -973,13 +910,11 @@ def detect_video(video_path):
 
     activity_counts = {}
 
-
     for detection in detections:
 
         activity = detection.get(
             "activity"
         )
-
 
         if (
             activity is not None
@@ -993,11 +928,9 @@ def detect_video(video_path):
                     activity
                 ] = 0
 
-
             activity_counts[
                 activity
             ] += 1
-
 
     print()
 
@@ -1013,7 +946,6 @@ def detect_video(video_path):
         "==================================="
     )
 
-
     for activity, count in (
         activity_counts.items()
     ):
@@ -1022,10 +954,8 @@ def detect_video(video_path):
             f"{activity}: {count}"
         )
 
-
     print(
         "==================================="
     )
-
 
     return detections
